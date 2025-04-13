@@ -12,6 +12,9 @@ watch:
 format:
 	@dune build @fmt --auto-promote
 
+update-submodules:
+	@git submodule update --init
+
 VERSION?=
 dune-release-distrib:
 	@[ -n "$(VERSION)" ] || (echo "make sure to pass VERSION " && exit 1)
