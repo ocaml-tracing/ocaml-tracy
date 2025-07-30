@@ -71,4 +71,16 @@ val message_f :
 (** Send a formatted message. Usage:
     [message_f (fun k -> k "hello %s %d" "world" 42)] *)
 
+val enter_frame : string -> unit
+(** Enter named frame.
+    @since NEXT_RELEASE *)
+
+val exit_frame : string -> unit
+(** Exit named frame.
+    @since NEXT_RELEASE *)
+
+val with_frame : string -> (unit -> 'a) -> 'a
+(** Protected enter+exit frame
+    @since NEXT_RELEASE *)
+
 val plot : string -> float -> unit
