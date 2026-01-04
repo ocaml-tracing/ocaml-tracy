@@ -4,5 +4,5 @@
  (archive_name tracyclient)
  (language cxx)
  (include_dirs ../tracy/public/tracy/ ../tracy/public)
- (flags -DTRACY_ENABLE=1 -fPIC -std=c++11 -O2)
+ (flags -DTRACY_ENABLE=1 -fPIC -std=c++17 -O2)
  (names TracyClient))
