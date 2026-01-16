@@ -1,12 +1,14 @@
-type explicit_span = Trace.explicit_span
+open Trace_core
 
 let spf = Printf.sprintf
 
-module C () : Trace.Collector.S = struct
-  let name_thread = Tracy_client.name_thread
-  let name_process _ = ()
+open struct
+  type Trace_core.span += Span_tracy of int
+  type st = unit
 
-  let process_data sp (d : string * Trace.user_data) =
+  let name_thread = Tracy_client.name_thread
+
+  let process_data sp (d : string * Trace_core.user_data) =
     let k, v = d in
     let msg =
       match v with
@@ -18,38 +20,36 @@ module C () : Trace.Collector.S = struct
     in
     Tracy_client.add_text sp msg
 
-  let enter_span ~__FUNCTION__ ~__FILE__ ~__LINE__ ~data name : Trace.span =
+  let enter_span (_ : st) ~__FUNCTION__ ~__FILE__ ~__LINE__ ~params:_ ~data
+      ~parent:_ name : span =
     let sp = Tracy_client.enter ?__FUNCTION__ ~__FILE__ ~__LINE__ name in
     if data <> [] then List.iter (process_data sp) data;
-    Int64.of_int sp
+    Span_tracy sp
 
-  let exit_span (sp : Trace.span) : unit = Tracy_client.exit (Int64.to_int sp)
+  let exit_span (_ : st) (sp : span) : unit =
+    match sp with
+    | Span_tracy sp -> Tracy_client.exit sp
+    | _ -> ()
 
-  let with_span ~__FUNCTION__ ~__FILE__ ~__LINE__ ~data name f =
-    let sp = enter_span ~__FUNCTION__ ~__FILE__ ~__LINE__ ~data name in
-    let finally () = exit_span sp in
-    Fun.protect ~finally (fun () -> f sp)
+  let message (_ : st) ~params:_ ~data:_ ~span:_ msg : unit =
+    Tracy_client.message msg
 
-  let message ?span:_ ~data:_ msg : unit = Tracy_client.message msg
-  let counter_float ~data:_ name n : unit = Tracy_client.plot name n
+  let counter_float _ ~params:_ ~data:_ name n : unit = Tracy_client.plot name n
 
-  let counter_int ~data name n : unit =
-    counter_float ~data name (float_of_int n)
+  let counter_int st ~params ~data name n : unit =
+    counter_float st ~params ~data name (float_of_int n)
 
-  let shutdown () = ()
-  let add_data_to_span _ _ = ()
-  let add_data_to_manual_span _ _ = ()
+  let add_data_to_span _ _ _ = ()
 
-  let enter_manual_span ~parent:_ ~flavor:_ ~__FUNCTION__:_ ~__FILE__:_
-      ~__LINE__:_ ~data:_ _name : explicit_span =
-    Trace.Collector.dummy_explicit_span
+  let extension (_ : st) ev =
+    match ev with
+    | Trace_core.Core_ext.Extension_set_thread_name name -> name_thread name
+    | _ -> ()
 
-  let exit_manual_span _es : unit = ()
-  let extension_event _ = ()
+  let callbacks : unit Collector.Callbacks.t =
+    Collector.Callbacks.make ~enter_span ~exit_span ~add_data_to_span ~message
+      ~counter_int ~counter_float ~extension ()
 end
 
-let collector () : Trace.collector =
-  let module C = C () in
-  (module C)
-
-let setup () = Trace.setup_collector @@ collector ()
+let collector () : Collector.t = Collector.C_some ((), callbacks)
+let setup () = Trace_core.setup_collector @@ collector ()
