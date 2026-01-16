@@ -2,4 +2,4 @@
  (name tracy_client_trace)
  (public_name tracy-client.trace)
  (synopsis "Trace interface for tracy-client")
- (libraries tracy-client trace))
+ (libraries tracy-client trace.core))
