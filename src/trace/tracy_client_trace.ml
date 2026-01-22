@@ -20,8 +20,8 @@ open struct
     in
     Tracy_client.add_text sp msg
 
-  let enter_span (_ : st) ~__FUNCTION__ ~__FILE__ ~__LINE__ ~params:_ ~data
-      ~parent:_ name : span =
+  let enter_span (_ : st) ~__FUNCTION__ ~__FILE__ ~__LINE__ ~level:_ ~params:_
+      ~data ~parent:_ name : span =
     let sp = Tracy_client.enter ?__FUNCTION__ ~__FILE__ ~__LINE__ name in
     if data <> [] then List.iter (process_data sp) data;
     Span_tracy sp
@@ -31,24 +31,25 @@ open struct
     | Span_tracy sp -> Tracy_client.exit sp
     | _ -> ()
 
-  let message (_ : st) ~params:_ ~data:_ ~span:_ msg : unit =
+  let message (_ : st) ~level:_ ~params:_ ~data:_ ~span:_ msg : unit =
     Tracy_client.message msg
 
-  let counter_float _ ~params:_ ~data:_ name n : unit = Tracy_client.plot name n
-
-  let counter_int st ~params ~data name n : unit =
-    counter_float st ~params ~data name (float_of_int n)
+  let metric _ ~level:_ ~params:_ ~data:_ name m : unit =
+    match m with
+    | Core_ext.Metric_float v -> Tracy_client.plot name v
+    | Core_ext.Metric_int v -> Tracy_client.plot name (float_of_int v)
+    | _ -> ()
 
   let add_data_to_span _ _ _ = ()
 
-  let extension (_ : st) ev =
+  let extension (_ : st) ~level:_ ev =
     match ev with
     | Trace_core.Core_ext.Extension_set_thread_name name -> name_thread name
     | _ -> ()
 
   let callbacks : unit Collector.Callbacks.t =
     Collector.Callbacks.make ~enter_span ~exit_span ~add_data_to_span ~message
-      ~counter_int ~counter_float ~extension ()
+      ~metric ~extension ()
 end
 
 let collector () : Collector.t = Collector.C_some ((), callbacks)
