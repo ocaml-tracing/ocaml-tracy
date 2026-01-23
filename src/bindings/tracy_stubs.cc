@@ -156,4 +156,19 @@ CAMLprim value ml_tracy_plot(value name, value x) {
 
   CAMLreturn(Val_unit);
 }
+
+CAMLprim value ml_tracy_frame_enter(value name) {
+  char const *c_name = String_val(name);
+  TracyCFrameMarkStart(c_name);
+  return Val_unit;
 }
+
+CAMLprim value ml_tracy_frame_exit(value name) {
+  char const *c_name = String_val(name);
+  TracyCFrameMarkEnd(c_name);
+  return Val_unit;
+}
+
+
+} // extern "C"
+

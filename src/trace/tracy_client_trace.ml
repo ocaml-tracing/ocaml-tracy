@@ -39,6 +39,8 @@ module C () : Trace.Collector.S = struct
   let shutdown () = ()
   let add_data_to_span _ _ = ()
   let add_data_to_manual_span _ _ = ()
+  let enter_context name = Tracy_client.enter_frame name
+  let exit_context name = Tracy_client.exit_frame name
 
   let enter_manual_span ~parent:_ ~flavor:_ ~__FUNCTION__:_ ~__FILE__:_
       ~__LINE__:_ ~data:_ _name : explicit_span =

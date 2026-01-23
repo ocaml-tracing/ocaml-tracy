@@ -24,6 +24,11 @@ external _tracy_span_value : span -> int64 -> unit = "ml_tracy_span_value"
 external _tracy_span_color : span -> int -> unit = "ml_tracy_span_color"
 [@@noalloc]
 
+external _tracy_frame_enter : string -> unit = "ml_tracy_frame_enter"
+  [@@noalloc]
+
+external _tracy_frame_exit : string -> unit = "ml_tracy_frame_exit" [@@noalloc]
+
 let enter ?cs_depth ~__FILE__:file ~__LINE__:line ?(__FUNCTION__ = "<fun>") name
     : span =
   let depth =
@@ -46,6 +51,18 @@ let add_text = _tracy_span_text
 let set_app_info = _tracy_app_info
 let message_f k = k (fun fmt -> Format.kasprintf message fmt)
 let add_text_f sp k = k (fun fmt -> Format.kasprintf (add_text sp) fmt)
+let enter_frame = _tracy_frame_enter
+let exit_frame = _tracy_frame_exit
+
+let[@inline] with_frame name f =
+  enter_frame name;
+  try
+    let x = f () in
+    exit_frame name;
+    x
+  with e ->
+    exit_frame name;
+    raise e
 
 let[@inline] with_ ?cs_depth ~__FILE__ ~__LINE__ ?__FUNCTION__ name f =
   let _sp = enter ?cs_depth ~__FILE__ ~__LINE__ ?__FUNCTION__ name in
