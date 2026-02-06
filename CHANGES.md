@@ -1,3 +1,7 @@
+## 0.7
+
+- move to trace 0.11
+- move to tracy v0.13.1
 
 ## 0.6
 
