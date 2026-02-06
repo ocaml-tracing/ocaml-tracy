@@ -24,6 +24,7 @@ jobs:
         ocaml-compiler: ${{ matrix.ocaml-compiler }}
         dune-cache: true
         allow-prerelease-opam: true
+    - run: opam pin -y -n trace https://github.com/ocaml-tracing/ocaml-trace/commit/c711a0dc66a731b9f2b300f321d2d763ccc21d75
     - run: opam pin -n .
     - run: opam depext -yt tracy-client
     - run: opam install . -t --deps-only
