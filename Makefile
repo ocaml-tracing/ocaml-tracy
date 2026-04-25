@@ -12,6 +12,9 @@ watch:
 format:
 	@dune build @fmt --auto-promote
 
+format-check:
+	@dune build @fmt --display=quiet
+
 update-submodules:
 	@git submodule update --init
 
