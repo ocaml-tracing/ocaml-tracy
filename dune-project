@@ -2,7 +2,7 @@
 
 (generate_opam_files true)
 
-(version 0.7)
+(version 0.7.1)
 
 (name tracy-client)
 
